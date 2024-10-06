@@ -28,9 +28,11 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  blur: ^4.0.0
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
+  go_router: ^14.3.0
   metaballs: ^1.5.0
 
 dev_dependencies:
