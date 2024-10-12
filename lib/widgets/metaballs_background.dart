@@ -17,7 +17,7 @@ class _MetaballsBackgroundState extends State<MetaballsBackground>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
     );
 
@@ -36,22 +36,21 @@ class _MetaballsBackgroundState extends State<MetaballsBackground>
   }
 
   Future<void> _navigateTo(BuildContext context, Widget screen) async {
-    // Close the drawer with animation before navigating
     await _controller.reverse();
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => screen,
-        transitionDuration: Duration(
-            milliseconds: 400), // Adjust the duration to make it slower
+        transitionDuration: const Duration(milliseconds: 1200),
+        reverseTransitionDuration: const Duration(milliseconds: 1200),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0); // Slide in from right
+          const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
 
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween = Tween(begin: begin, end: end).chain(
+            CurveTween(curve: curve),
+          );
           var offsetAnimation = animation.drive(tween);
 
           return SlideTransition(
@@ -75,9 +74,8 @@ class _MetaballsBackgroundState extends State<MetaballsBackground>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Metaballs background effect with Royal Blue color
           Metaballs(
-            color: const Color(0xFF4169E1), // Royal Blue color
+            color: const Color(0xFF4169E1),
             effect: MetaballsEffect.follow(
               growthFactor: 1.2,
               radius: 0.7,
@@ -100,52 +98,38 @@ class _MetaballsBackgroundState extends State<MetaballsBackground>
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
-              double slide = 250.0 * _animation.value;
-              double scale = 1 - (_animation.value * 0.3);
-              double rotateY = (_animation.value * 0.3);
+              double slide = - 250.0 * _animation.value;
+              double scale = 1 - (_animation.value * 0.5);
 
               return Transform(
                 transform: Matrix4.identity()
-                  ..translate(slide)
-                  ..scale(scale)
-                  ..rotateY(-rotateY),
-                alignment: Alignment.centerLeft,
-                child: Scaffold(
-                  appBar: AppBar(
-                    title: Text('3D Drawer Animation'),
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    leading: IconButton(
-                      icon: Icon(Icons.menu,
-                          color: Colors.black), // Hamburger icon
-                      onPressed: _toggleDrawer, // Open/close the drawer
-                    ),
-                  ),
-                  body: Center(
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white.withOpacity(.6),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Metaballs Background',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black.withOpacity(0.7),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  ..translate(slide) // moves the widget along the x-axis
+                  ..scale(scale),
+                alignment: Alignment.center,
+                child: HomeScreen(
+                  toggleDrawer: _toggleDrawer,
                 ),
               );
             },
           ),
-          _buildDrawer(), // 3D Drawer
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              double slide = 250.0 * _animation.value;
+              double scale = 1 - (_animation.value * 0.5);
+
+              return Transform(
+                transform: Matrix4.identity()
+                  // ..translate(slide) // moves the widget along the x-axis
+                  ..scale(scale),
+                alignment: Alignment.center,
+                child: HomeScreen(
+                  toggleDrawer: _toggleDrawer,
+                ),
+              );
+            },
+          ),
+          // _buildDrawer(), // 3D Drawer
         ],
       ),
     );
@@ -156,90 +140,124 @@ class _MetaballsBackgroundState extends State<MetaballsBackground>
       animation: _animation,
       builder: (context, child) {
         double translateX = -250.0 * (1 - _animation.value);
-        double rotateY = -0.5 * (1 - _animation.value);
 
         return Transform(
-          transform: Matrix4.identity()
-            ..translate(translateX)
-            ..rotateY(rotateY),
-          alignment: Alignment.centerRight,
-          child: Container(
-            width: 250,
-            color: Colors.blueAccent,
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                  ),
-                  child: Text(
-                    '3D Drawer Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
+            transform: Matrix4.identity()..translate(translateX),
+            alignment: Alignment.centerRight,
+            child: CustomDrawer(
+              toggleDrawer: _toggleDrawer,
+              navigateTo: _navigateTo,
+            ));
+      },
+    );
+  }
+}
+
+class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({
+    required this.navigateTo,
+    required this.toggleDrawer,
+    super.key,
+  });
+
+  final void Function(BuildContext context, Widget screen) navigateTo;
+  final void Function() toggleDrawer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 250,
+      color: Colors.blueAccent,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          GestureDetector(
+            onTap: () {
+              toggleDrawer();
+            },
+            child: const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+              ),
+              child: Text(
+                '3D Drawer Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
                 ),
-                ListTile(
-                  leading: Icon(Icons.home, color: Colors.white),
-                  title: Text(
-                    'Home',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    _navigateTo(context, HomeScreen());
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.settings, color: Colors.white),
-                  title: Text(
-                    'Settings',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    _navigateTo(context, SettingsScreen());
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.info, color: Colors.white),
-                  title: Text(
-                    'About',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    _navigateTo(context, AboutScreen());
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.gamepad, color: Colors.white),
-                  title: Text(
-                    '3D game',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    _navigateTo(context, Car3DGame());
-                  },
-                ),
-              ],
+              ),
             ),
           ),
-        );
-      },
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.white),
+            title: const Text(
+              'Settings',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              navigateTo(context, SettingsScreen());
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info, color: Colors.white),
+            title: const Text(
+              'About',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              navigateTo(context, AboutScreen());
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.gamepad, color: Colors.white),
+            title: const Text(
+              '3D game',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              navigateTo(context, Car3DGame());
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
 // Example screens for navigation
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key, required this.toggleDrawer});
+
+  final void Function() toggleDrawer;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Screen'),
+        title: const Text('3D Drawer Animation'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.black),
+          onPressed: toggleDrawer,
+        ),
       ),
       body: Center(
-        child: Text('Welcome to Home Screen'),
+        child: Container(
+          width: 200,
+          height: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.orange,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.5),
+                blurRadius: 20,
+                spreadRadius: 10,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
