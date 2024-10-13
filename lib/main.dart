@@ -92,6 +92,17 @@ class _AppsBackgroundState extends State<AppsBackground>
     double centerOffsetX7 = offsetX7 + containerWidth / 2;
     double centerOffsetX8 = offsetX8 + containerWidth / 2;
 
+    Map<String, double> containerCenters2 = {
+      'offsetX1': offsetX2,
+      'offsetX2': offsetX3,
+      'offsetX3': offsetX4,
+      'offsetX4': offsetX5,
+      'offsetX5': offsetX6,
+      'offsetX6': offsetX7,
+      'offsetX7': offsetX8,
+      'offsetX8': offsetX8,
+    };
+
     // Create a map of container centers
     Map<String, double> containerCenters = {
       'offsetX1': centerOffsetX1,
@@ -121,7 +132,7 @@ class _AppsBackgroundState extends State<AppsBackground>
         distances.entries.reduce((a, b) => a.value < b.value ? a : b).key;
 
     // Calculate delta to center the closest container
-    double delta = centerX - containerCenters[closestOffsetKey]!;
+    double delta = centerX - (containerCenters2[closestOffsetKey]!);
 
     // Store initial offsets
     double initialOffsetX1 = offsetX1;
@@ -291,13 +302,16 @@ class _AppsBackgroundState extends State<AppsBackground>
                 ),
                 LayoutId(
                   id: 'container8',
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.pink,
+                  child: Visibility(
+                    visible: false,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.pink,
+                      ),
+                      width: containerWidth,
+                      height: containerHeight,
                     ),
-                    width: containerWidth,
-                    height: containerHeight,
                   ),
                 ),
               ],
