@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
 
 void main() {
   runApp(
@@ -15,36 +14,54 @@ class AppsBackground extends StatefulWidget {
   _AppsBackgroundState createState() => _AppsBackgroundState();
 }
 
+late double containerWidth;
+late double containerHeight;
+
+late double screenWidth;
+
 class _AppsBackgroundState extends State<AppsBackground>
     with TickerProviderStateMixin {
   late double offsetX1;
   late double offsetX2;
   late double offsetX3;
   late double offsetX4;
+  late double offsetX5;
+  late double offsetX6;
+  late double offsetX7;
+  late double offsetX8;
 
-  final double containerWidth = 400;
-  final double screenWidth = 600;
-
-  AnimationController? _animationController;
-  Map<String, FrictionSimulation> simulations = {};
+  AnimationController? animationController;
 
   @override
   void initState() {
     super.initState();
-    offsetX1 = 600 + (125 * 0);
-    offsetX2 = 600 + (125 * 1);
-    offsetX3 = 600 + (125 * 2);
-    offsetX4 = 600 + (125 * 3);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final m = MediaQuery.of(context).size.width * 0.26;
+      offsetX1 = (m * 0);
+      offsetX2 = (m * 1);
+      offsetX3 = (m * 2);
+      offsetX4 = (m * 3);
+      offsetX5 = (m * 4);
+      offsetX6 = (m * 5);
+      offsetX7 = (m * 6);
+      offsetX8 = (m * 7);
+      setState(() {});
+    });
+    offsetX1 = (125 * 0);
+    offsetX2 = (125 * 1);
+    offsetX3 = (125 * 2);
+    offsetX4 = (125 * 3);
+    offsetX5 = (125 * 4);
+    offsetX6 = (125 * 5);
+    offsetX7 = (125 * 6);
+    offsetX8 = (125 * 7);
   }
 
   void _onHorizontalDragStart(DragStartDetails details) {
-    // Cancel any ongoing inertia animation
-    if (_animationController != null) {
-      _animationController!.stop();
-      _animationController!.dispose();
-      _animationController = null;
-      simulations.clear();
-    }
+    // Cancel any ongoing animation
+    animationController?.stop();
+    animationController?.dispose();
+    animationController = null;
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
@@ -52,158 +69,238 @@ class _AppsBackgroundState extends State<AppsBackground>
     offsetX2 += details.delta.dx;
     offsetX3 += details.delta.dx;
     offsetX4 += details.delta.dx;
-    print(offsetX4);
+    offsetX5 += details.delta.dx;
+    offsetX6 += details.delta.dx;
+    offsetX7 += details.delta.dx;
+    offsetX8 += details.delta.dx;
     setState(() {});
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) {
-    double velocity = details.velocity.pixelsPerSecond.dx;
+    // Remove previous animation controller
+    animationController?.dispose();
 
-    if (velocity.abs() < 50) return;
+    double centerX = screenWidth / 2;
 
-    _animationController?.dispose();
+    // Calculate the center position of each container
+    double centerOffsetX1 = offsetX1 + containerWidth / 2;
+    double centerOffsetX2 = offsetX2 + containerWidth / 2;
+    double centerOffsetX3 = offsetX3 + containerWidth / 2;
+    double centerOffsetX4 = offsetX4 + containerWidth / 2;
+    double centerOffsetX5 = offsetX5 + containerWidth / 2;
+    double centerOffsetX6 = offsetX6 + containerWidth / 2;
+    double centerOffsetX7 = offsetX7 + containerWidth / 2;
+    double centerOffsetX8 = offsetX8 + containerWidth / 2;
 
-    const double friction = 0.05;
+    // Create a map of container centers
+    Map<String, double> containerCenters = {
+      'offsetX1': centerOffsetX1,
+      'offsetX2': centerOffsetX2,
+      'offsetX3': centerOffsetX3,
+      'offsetX4': centerOffsetX4,
+      'offsetX5': centerOffsetX5,
+      'offsetX6': centerOffsetX6,
+      'offsetX7': centerOffsetX7,
+      'offsetX8': centerOffsetX8,
+    };
 
-    // Create a FrictionSimulation for each offset
-    simulations['offsetX1'] = FrictionSimulation(friction, offsetX1, velocity);
-    simulations['offsetX2'] = FrictionSimulation(friction, offsetX2, velocity);
-    simulations['offsetX3'] = FrictionSimulation(friction, offsetX3, velocity);
-    simulations['offsetX4'] = FrictionSimulation(friction, offsetX4, velocity);
+    // Calculate distances from container centers to screen center
+    Map<String, double> distances = {
+      'offsetX1': (centerOffsetX1 - centerX).abs(),
+      'offsetX2': (centerOffsetX2 - centerX).abs(),
+      'offsetX3': (centerOffsetX3 - centerX).abs(),
+      'offsetX4': (centerOffsetX4 - centerX).abs(),
+      'offsetX5': (centerOffsetX5 - centerX).abs(),
+      'offsetX6': (centerOffsetX6 - centerX).abs(),
+      'offsetX7': (centerOffsetX7 - centerX).abs(),
+      'offsetX8': (centerOffsetX8 - centerX).abs(),
+    };
 
-    // Calculate the maximum duration among all simulations
-    double maxDuration = 0.0;
-    for (var sim in simulations.values) {
-      double simDuration = _calculateSimulationDuration(sim);
-      if (simDuration > maxDuration) {
-        maxDuration = simDuration;
-      }
-    }
+    // Find the closest container
+    String closestOffsetKey =
+        distances.entries.reduce((a, b) => a.value < b.value ? a : b).key;
 
-    // Create the AnimationController with the max duration
-    _animationController = AnimationController(
+    // Calculate delta to center the closest container
+    double delta = centerX - containerCenters[closestOffsetKey]!;
+
+    // Store initial offsets
+    double initialOffsetX1 = offsetX1;
+    double initialOffsetX2 = offsetX2;
+    double initialOffsetX3 = offsetX3;
+    double initialOffsetX4 = offsetX4;
+    double initialOffsetX5 = offsetX5;
+    double initialOffsetX6 = offsetX6;
+    double initialOffsetX7 = offsetX7;
+    double initialOffsetX8 = offsetX8;
+
+    // Create animation controller
+    animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: (maxDuration * 1000).ceil()),
+      duration: const Duration(milliseconds: 500),
     );
 
-    _animationController!.addListener(() {
+    Animation<double> animation = Tween<double>(begin: 0, end: delta).animate(
+      CurvedAnimation(
+        parent: animationController!,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationController!.addListener(() {
       setState(() {
-        double time = _animationController!.value * maxDuration;
-        if (!simulations['offsetX1']!.isDone(time)) {
-          offsetX1 = simulations['offsetX1']!.x(time);
-        }
-        if (!simulations['offsetX2']!.isDone(time)) {
-          offsetX2 = simulations['offsetX2']!.x(time);
-        }
-        if (!simulations['offsetX3']!.isDone(time)) {
-          offsetX3 = simulations['offsetX3']!.x(time);
-        }
-        if (!simulations['offsetX4']!.isDone(time)) {
-          offsetX4 = simulations['offsetX4']!.x(time);
-        }
+        double currentDelta = animation.value;
+        offsetX1 = initialOffsetX1 + currentDelta;
+        offsetX2 = initialOffsetX2 + currentDelta;
+        offsetX3 = initialOffsetX3 + currentDelta;
+        offsetX4 = initialOffsetX4 + currentDelta;
+        offsetX5 = initialOffsetX5 + currentDelta;
+        offsetX6 = initialOffsetX6 + currentDelta;
+        offsetX7 = initialOffsetX7 + currentDelta;
+        offsetX8 = initialOffsetX8 + currentDelta;
       });
     });
 
-    _animationController!.forward();
-
-    _animationController!.addStatusListener((status) {
+    animationController!.addStatusListener((status) {
       if (status == AnimationStatus.completed ||
           status == AnimationStatus.dismissed) {
-        _animationController!.dispose();
-        _animationController = null;
-        simulations.clear();
+        animationController!.dispose();
+        animationController = null;
       }
     });
-  }
 
-  // Function to calculate the duration of the simulation
-  double _calculateSimulationDuration(FrictionSimulation simulation) {
-    double duration = 0.0;
-    double dt = 1 / 60; // Time increment per frame (assuming 60 FPS)
-    while (!simulation.isDone(duration) && duration < 5.0) {
-      duration += dt;
-    }
-    return duration;
+    animationController!.forward();
   }
 
   @override
   void dispose() {
-    _animationController?.dispose();
+    animationController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    containerWidth = MediaQuery.of(context).size.width * 0.7;
+    containerHeight = MediaQuery.of(context).size.height * 0.6;
+    screenWidth = MediaQuery.of(context).size.width;
+
     final factorAcceleration1 = offsetX1 / (screenWidth - containerWidth);
     final factorAcceleration2 = offsetX2 / (screenWidth - containerWidth);
     final factorAcceleration3 = offsetX3 / (screenWidth - containerWidth);
     final factorAcceleration4 = offsetX4 / (screenWidth - containerWidth);
+    final factorAcceleration5 = offsetX5 / (screenWidth - containerWidth);
+    final factorAcceleration6 = offsetX6 / (screenWidth - containerWidth);
+    final factorAcceleration7 = offsetX7 / (screenWidth - containerWidth);
+    final factorAcceleration8 = offsetX8 / (screenWidth - containerWidth);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: GestureDetector(
           onHorizontalDragStart: _onHorizontalDragStart,
           onHorizontalDragUpdate: _onHorizontalDragUpdate,
           onHorizontalDragEnd: _onHorizontalDragEnd,
           child: SizedBox(
-            width: screenWidth,
-            height: MediaQuery.of(context).size.height,
-            child: Container(
-              color: Colors.black,
-              child: CustomMultiChildLayout(
-                delegate: _MyCustomLayoutDelegate(
-                  offsetX1: offsetX1 > 0 ? offsetX1 * factorAcceleration1 : 0,
-                  offsetX2: offsetX2 > 0 ? offsetX2 * factorAcceleration2 : 0,
-                  offsetX3: offsetX3 > 0 ? offsetX3 * factorAcceleration3 : 0,
-                  offsetX4: offsetX4 > 0 ? offsetX4 * factorAcceleration4 : 0,
-                ),
-                children: [
-                  LayoutId(
-                    id: 'container1',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.red,
-                      ),
-                      width: containerWidth,
-                      height: 600,
-                    ),
-                  ),
-                  LayoutId(
-                    id: 'container2',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.green,
-                      ),
-                      width: containerWidth,
-                      height: 600,
-                    ),
-                  ),
-                  LayoutId(
-                    id: 'container3',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.yellow,
-                      ),
-                      width: containerWidth,
-                      height: 600,
-                    ),
-                  ),
-                  LayoutId(
-                    id: 'container4',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.orange,
-                      ),
-                      width: containerWidth,
-                      height: 600,
-                    ),
-                  ),
-                ],
+            child: CustomMultiChildLayout(
+              delegate: _MyCustomLayoutDelegate(
+                offsetX1: offsetX1 > 0 ? offsetX1 * factorAcceleration1 : 0,
+                offsetX2: offsetX2 > 0 ? offsetX2 * factorAcceleration2 : 0,
+                offsetX3: offsetX3 > 0 ? offsetX3 * factorAcceleration3 : 0,
+                offsetX4: offsetX4 > 0 ? offsetX4 * factorAcceleration4 : 0,
+                offsetX5: offsetX5 > 0 ? offsetX5 * factorAcceleration5 : 0,
+                offsetX6: offsetX6 > 0 ? offsetX6 * factorAcceleration6 : 0,
+                offsetX7: offsetX7 > 0 ? offsetX7 * factorAcceleration7 : 0,
+                offsetX8: offsetX8 > 0 ? offsetX8 * factorAcceleration8 : 0,
               ),
+              children: [
+                LayoutId(
+                  id: 'container1',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.red,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container2',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.green,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container3',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.yellow,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container4',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.orange,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container5',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.blue,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container6',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.purple,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container7',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.teal,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+                LayoutId(
+                  id: 'container8',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.pink,
+                    ),
+                    width: containerWidth,
+                    height: containerHeight,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -217,62 +314,65 @@ class _MyCustomLayoutDelegate extends MultiChildLayoutDelegate {
   final double offsetX2;
   final double offsetX3;
   final double offsetX4;
+  final double offsetX5;
+  final double offsetX6;
+  final double offsetX7;
+  final double offsetX8;
 
   _MyCustomLayoutDelegate({
     required this.offsetX1,
     required this.offsetX2,
     required this.offsetX3,
     required this.offsetX4,
+    required this.offsetX5,
+    required this.offsetX6,
+    required this.offsetX7,
+    required this.offsetX8,
   });
 
   @override
   void performLayout(Size size) {
-    // Layout and position container1
+    final height = size.height;
+    final mediumHeightContainer = containerHeight / 2;
+    final top = height / 2 - mediumHeightContainer;
     if (hasChild('container1')) {
-      Size containerSize = layoutChild(
-        'container1',
-        BoxConstraints.loose(size),
-      );
-      positionChild(
-        'container1',
-        Offset(offsetX1, 170),
-      );
+      layoutChild('container1', BoxConstraints.loose(size));
+      positionChild('container1', Offset(offsetX1, top));
     }
 
-    // Layout and position container2
     if (hasChild('container2')) {
-      Size containerSize = layoutChild(
-        'container2',
-        BoxConstraints.loose(size),
-      );
-      positionChild(
-        'container2',
-        Offset(offsetX2, 170),
-      );
+      layoutChild('container2', BoxConstraints.loose(size));
+      positionChild('container2', Offset(offsetX2, top));
     }
 
-    // Layout and position container3
     if (hasChild('container3')) {
-      Size containerSize = layoutChild(
-        'container3',
-        BoxConstraints.loose(size),
-      );
-      positionChild(
-        'container3',
-        Offset(offsetX3, 170),
-      );
+      layoutChild('container3', BoxConstraints.loose(size));
+      positionChild('container3', Offset(offsetX3, top));
     }
 
-    // Layout and position container4
     if (hasChild('container4')) {
-      Size containerSize = layoutChild(
-        'container4',
-        BoxConstraints.loose(size),
-      );
-      positionChild(
-        'container4',
-        Offset(offsetX4, 170),
-      );
+      layoutChild('container4', BoxConstraints.loose(size));
+      positionChild('container4', Offset(offsetX4, top));
+    }
+
+    if (hasChild('container5')) {
+      layoutChild('container5', BoxConstraints.loose(size));
+      positionChild('container5', Offset(offsetX5, top));
+    }
+
+    if (hasChild('container6')) {
+      layoutChild('container6', BoxConstraints.loose(size));
+      positionChild('container6', Offset(offsetX6, top));
+    }
+
+    if (hasChild('container7')) {
+      layoutChild('container7', BoxConstraints.loose(size));
+      positionChild('container7', Offset(offsetX7, top));
+    }
+
+    if (hasChild('container8')) {
+      layoutChild('container8', BoxConstraints.loose(size));
+      positionChild('container8', Offset(offsetX8, top));
     }
   }
 
@@ -281,6 +381,10 @@ class _MyCustomLayoutDelegate extends MultiChildLayoutDelegate {
     return offsetX1 != oldDelegate.offsetX1 ||
         offsetX2 != oldDelegate.offsetX2 ||
         offsetX3 != oldDelegate.offsetX3 ||
-        offsetX4 != oldDelegate.offsetX4;
+        offsetX4 != oldDelegate.offsetX4 ||
+        offsetX5 != oldDelegate.offsetX5 ||
+        offsetX6 != oldDelegate.offsetX6 ||
+        offsetX7 != oldDelegate.offsetX7 ||
+        offsetX8 != oldDelegate.offsetX8;
   }
 }
